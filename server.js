@@ -18,7 +18,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/chats', require('./routes/chats'));
 app.use('/api', require('./routes/index'));
 
-// Serve static files from the React app (only if public folder exists)
+// Serve static files from the React app (only if public folder exists - for local development)
 const publicPath = path.join(__dirname, 'public');
 const publicExists = fs.existsSync(publicPath);
 
@@ -34,24 +34,22 @@ if (publicExists) {
       if (fs.existsSync(indexPath)) {
         res.sendFile(indexPath);
       } else {
-        res.status(404).json({ 
-          error: 'Frontend not built. Please run: npm run build:frontend' 
-        });
+        res.status(404).json({ error: 'Route not found' });
       }
     } else {
       res.status(404).json({ error: 'Route not found' });
     }
   });
 } else {
-  // If public folder doesn't exist, only serve API routes
+  // Backend-only deployment: only serve API routes
   app.use((req, res) => {
     if (!req.path.startsWith('/api')) {
-      res.status(503).json({ 
-        error: 'Frontend not available. Please build the frontend first.',
-        message: 'Run: npm run build:frontend'
+      res.status(404).json({ 
+        error: 'Route not found',
+        message: 'This is a backend API server. Frontend is deployed separately.'
       });
     } else {
-      res.status(404).json({ error: 'Route not found' });
+      res.status(404).json({ error: 'API route not found' });
     }
   });
 }
