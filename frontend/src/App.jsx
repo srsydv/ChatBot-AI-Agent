@@ -58,14 +58,6 @@ const AppContent = () => {
     setMessages([])
   }
 
-  // Create a new chat automatically when user logs in and there's no current chat
-  useEffect(() => {
-    if (isAuthenticated && !currentChatId && messages.length === 0) {
-      handleNewChat()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated])
-
   const handleSendMessage = async (message) => {
     if (!isAuthenticated) {
       setAuthModalOpen(true)
