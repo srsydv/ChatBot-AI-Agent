@@ -24,4 +24,7 @@ chatSchema.pre('save', function() {
   this.updatedAt = Date.now();
 });
 
+// Index for listing a user's chats sorted by updatedAt (avoids full collection scan + in-memory sort)
+chatSchema.index({ user: 1, updatedAt: -1 });
+
 module.exports = mongoose.model('Chat', chatSchema);

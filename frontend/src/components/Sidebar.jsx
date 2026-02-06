@@ -6,14 +6,17 @@ const Sidebar = ({ onNewChat, onAuthModalOpen, onLoadChat, onClearChat, currentC
   const [activeItem, setActiveItem] = useState('new-chat')
   const [chats, setChats] = useState([])
   const [loadingChats, setLoadingChats] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [pagination, setPagination] = useState({ page: 1, hasMore: false })
   const { user, logout, isAuthenticated, token } = useAuth()
 
-  // Fetch chat history
+  // Fetch chat history (first page, resets list)
   useEffect(() => {
     if (isAuthenticated && token) {
       fetchChatHistory()
     } else {
       setChats([])
+      setPagination({ page: 1, hasMore: false })
     }
   }, [isAuthenticated, token])
 
@@ -25,16 +28,29 @@ const Sidebar = ({ onNewChat, onAuthModalOpen, onLoadChat, onClearChat, currentC
     }
   }, [isAuthenticated, token])
 
-  const fetchChatHistory = async () => {
+  const fetchChatHistory = async (options = {}) => {
+    const { page = 1, append = false } = options
     try {
-      setLoadingChats(true)
-      const result = await chatService.getChats(token)
-      setChats(result.chats)
+      if (append) setLoadingMore(true)
+      else setLoadingChats(true)
+      const result = await chatService.getChats(token, { page, limit: 50 })
+      const newChats = result.chats || []
+      setChats(prev => append ? [...prev, ...newChats] : newChats)
+      setPagination({
+        page: result.pagination?.page ?? page,
+        hasMore: result.pagination?.hasMore ?? false,
+      })
     } catch (error) {
       console.error('Error fetching chat history:', error)
     } finally {
       setLoadingChats(false)
+      setLoadingMore(false)
     }
+  }
+
+  const loadMoreChats = () => {
+    if (!pagination.hasMore || loadingMore) return
+    fetchChatHistory({ page: pagination.page + 1, append: true })
   }
 
   const handleLogout = async () => {
@@ -157,6 +173,16 @@ const Sidebar = ({ onNewChat, onAuthModalOpen, onLoadChat, onClearChat, currentC
                   </button>
                 </div>
               ))}
+              {pagination.hasMore && (
+                <button
+                  type="button"
+                  onClick={loadMoreChats}
+                  disabled={loadingMore}
+                  className="w-full px-2 py-2 text-sm text-dark-text-secondary hover:text-white hover:bg-dark-border rounded transition-colors disabled:opacity-50"
+                >
+                  {loadingMore ? 'Loading...' : 'Load more'}
+                </button>
+              )}
             </div>
           )}
         </div>

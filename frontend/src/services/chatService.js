@@ -19,9 +19,10 @@ export const chatService = {
     return await response.json();
   },
 
-  // Get all chats for the current user
-  async getChats(token) {
-    const response = await fetch('/api/chats', {
+  // Get all chats for the current user (paginated)
+  async getChats(token, { page = 1, limit = 50 } = {}) {
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    const response = await fetch(`/api/chats?${params}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },

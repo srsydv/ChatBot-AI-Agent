@@ -29,9 +29,19 @@ router.post('/', protect, async (req, res) => {
 
 router.get('/', protect, async (req, res) => {
   try {
-    const chats = await Chat.find({ user: req.user.id })
-      .sort({ updatedAt: -1 })
-      .select('title createdAt updatedAt');
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 50));
+    const skip = (page - 1) * limit;
+
+    const [chats, total] = await Promise.all([
+      Chat.find({ user: req.user.id })
+        .sort({ updatedAt: -1 })
+        .select('title createdAt updatedAt')
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Chat.countDocuments({ user: req.user.id }),
+    ]);
 
     res.json({
       success: true,
@@ -41,6 +51,12 @@ router.get('/', protect, async (req, res) => {
         createdAt: chat.createdAt,
         updatedAt: chat.updatedAt,
       })),
+      pagination: {
+        page,
+        limit,
+        total,
+        hasMore: skip + chats.length < total,
+      },
     });
   } catch (error) {
     console.error('Get chats error:', error);
