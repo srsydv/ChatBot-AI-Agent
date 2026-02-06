@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar'
 import ChatArea from './components/ChatArea'
 import AuthModal from './components/AuthModal'
 import { chatService } from './services/chatService'
+import { getApiUrl } from './config/api'
 
 const AppContent = () => {
   const [messages, setMessages] = useState([])
@@ -88,7 +89,7 @@ const AppContent = () => {
     setIsLoading(true)
 
     try {
-      const response = await fetch('/api/chat', {
+      const response = await fetch(getApiUrl('/api/chat'), {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({ 

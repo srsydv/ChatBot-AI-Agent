@@ -1,8 +1,10 @@
+import { getApiUrl } from '../config/api';
+
 // Chat API service
 export const chatService = {
   // Create a new chat
   async createChat(title = 'New Chat', token) {
-    const response = await fetch('/api/chats', {
+    const response = await fetch(getApiUrl('/api/chats'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -22,7 +24,7 @@ export const chatService = {
   // Get all chats for the current user (paginated)
   async getChats(token, { page = 1, limit = 50 } = {}) {
     const params = new URLSearchParams({ page: String(page), limit: String(limit) });
-    const response = await fetch(`/api/chats?${params}`, {
+    const response = await fetch(`${getApiUrl('/api/chats')}?${params}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
@@ -38,7 +40,7 @@ export const chatService = {
 
   // Get a specific chat with all messages
   async getChat(chatId, token) {
-    const response = await fetch(`/api/chats/${chatId}`, {
+    const response = await fetch(getApiUrl(`/api/chats/${chatId}`), {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
@@ -54,7 +56,7 @@ export const chatService = {
 
   // Delete a chat
   async deleteChat(chatId, token) {
-    const response = await fetch(`/api/chats/${chatId}`, {
+    const response = await fetch(getApiUrl(`/api/chats/${chatId}`), {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -71,7 +73,7 @@ export const chatService = {
 
   // Update chat title
   async updateChatTitle(chatId, title, token) {
-    const response = await fetch(`/api/chats/${chatId}/title`, {
+    const response = await fetch(getApiUrl(`/api/chats/${chatId}/title`), {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
