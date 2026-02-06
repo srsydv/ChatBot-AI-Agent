@@ -65,10 +65,12 @@ const AppContent = () => {
     }
 
     // Create a new chat if one doesn't exist
-    if (!currentChatId) {
+    let chatId = currentChatId
+    if (!chatId) {
       try {
         const result = await chatService.createChat('New Chat', token)
-        setCurrentChatId(result.chat.id)
+        chatId = result.chat.id
+        setCurrentChatId(chatId)
       } catch (error) {
         console.error('Error creating chat:', error)
         return
@@ -86,7 +88,7 @@ const AppContent = () => {
         headers: getAuthHeaders(),
         body: JSON.stringify({ 
           message,
-          chatId: currentChatId,
+          chatId: chatId,
           conversationHistory: messages, // Send conversation history for context
         }),
       })
@@ -109,11 +111,11 @@ const AppContent = () => {
         const updated = [...prev, aiMessage]
         
         // Update chat title with first user message if it's still "New Chat"
-        if (updated.length === 2 && currentChatId) {
+        if (updated.length === 2 && chatId) {
           const firstUserMessage = updated.find(m => m.role === 'user')
           if (firstUserMessage) {
             const title = firstUserMessage.content.slice(0, 50)
-            chatService.updateChatTitle(currentChatId, title, token).catch(console.error)
+            chatService.updateChatTitle(chatId, title, token).catch(console.error)
           }
         }
         
