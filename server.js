@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 const connectDB = require('./config/database');
 
@@ -17,20 +18,43 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/chats', require('./routes/chats'));
 app.use('/api', require('./routes/index'));
 
-// Serve static files from the React app
+// Serve static files from the React app (only if public folder exists)
 const publicPath = path.join(__dirname, 'public');
-app.use(express.static(publicPath));
+const publicExists = fs.existsSync(publicPath);
 
-// Catch all handler: send back React's index.html file for SPA routing
-// This must be after static files middleware
-app.use((req, res) => {
-  // Only serve index.html for non-API routes
-  if (!req.path.startsWith('/api')) {
-    res.sendFile(path.join(publicPath, 'index.html'));
-  } else {
-    res.status(404).json({ error: 'Route not found' });
-  }
-});
+if (publicExists) {
+  app.use(express.static(publicPath));
+  
+  // Catch all handler: send back React's index.html file for SPA routing
+  // This must be after static files middleware
+  app.use((req, res) => {
+    // Only serve index.html for non-API routes
+    if (!req.path.startsWith('/api')) {
+      const indexPath = path.join(publicPath, 'index.html');
+      if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+      } else {
+        res.status(404).json({ 
+          error: 'Frontend not built. Please run: npm run build:frontend' 
+        });
+      }
+    } else {
+      res.status(404).json({ error: 'Route not found' });
+    }
+  });
+} else {
+  // If public folder doesn't exist, only serve API routes
+  app.use((req, res) => {
+    if (!req.path.startsWith('/api')) {
+      res.status(503).json({ 
+        error: 'Frontend not available. Please build the frontend first.',
+        message: 'Run: npm run build:frontend'
+      });
+    } else {
+      res.status(404).json({ error: 'Route not found' });
+    }
+  });
+}
 
 // Error handling middleware
 app.use((err, req, res, next) => {
