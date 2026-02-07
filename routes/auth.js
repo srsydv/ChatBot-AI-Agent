@@ -156,6 +156,59 @@ router.post('/verify-otp', async (req, res) => {
   }
 });
 
+/**
+ * Exchange Supabase session (after OTP verify) for our JWT.
+ * Body: { access_token } (Supabase access_token from verifyOtp).
+ * Verifies JWT with SUPABASE_JWT_SECRET, finds/creates User by email, returns our token + user.
+ */
+router.post('/supabase-login', async (req, res) => {
+  try {
+    const { access_token } = req.body;
+    if (!access_token || typeof access_token !== 'string') {
+      return res.status(400).json({ error: 'Missing Supabase access token' });
+    }
+    const secret = process.env.SUPABASE_JWT_SECRET;
+    if (!secret) {
+      return res.status(500).json({ error: 'Supabase auth not configured' });
+    }
+    let payload;
+    try {
+      payload = jwt.verify(access_token, secret);
+    } catch (err) {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+    const email = payload.email;
+    if (!email) {
+      return res.status(401).json({ error: 'Invalid token: no email' });
+    }
+    const normalizedEmail = email.toLowerCase().trim();
+    let user = await User.findOne({ email: normalizedEmail });
+    if (!user) {
+      const nameFromEmail = normalizedEmail.split('@')[0] || 'User';
+      const name = nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1).toLowerCase();
+      const randomPassword = require('crypto').randomBytes(12).toString('hex');
+      user = await User.create({
+        name,
+        email: normalizedEmail,
+        password: randomPassword,
+      });
+    }
+    const token = generateToken(user._id);
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    console.error('Supabase login error:', error);
+    res.status(500).json({ error: 'Server error during login' });
+  }
+});
+
 router.post('/logout', protect, (req, res) => {
   res.json({ success: true, message: 'Logged out successfully' });
 });
