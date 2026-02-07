@@ -2,10 +2,12 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { protect } = require('../middleware/auth');
+const { sendOTPEmail } = require('../services/emailService');
+const otpStore = require('../services/otpStore');
 
 const router = express.Router();
 
-// Generate JWT Token
+
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE || '30d',
@@ -94,6 +96,63 @@ router.post('/login', async (req, res) => {
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Server error during login' });
+  }
+});
+
+
+router.post('/send-otp', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email || typeof email !== 'string' || !email.trim()) {
+      return res.status(400).json({ error: 'Please provide a valid email' });
+    }
+    const normalizedEmail = email.toLowerCase().trim();
+    const otp = otpStore.generateOTP();
+    otpStore.set(normalizedEmail, otp);
+    await sendOTPEmail(normalizedEmail, otp);
+    res.json({ success: true, message: 'OTP sent to your email' });
+  } catch (error) {
+    console.error('Send OTP error:', error);
+    res.status(500).json({ error: 'Failed to send OTP. Please try again.' });
+  }
+});
+
+
+router.post('/verify-otp', async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({ error: 'Please provide email and OTP' });
+    }
+    const normalizedEmail = email.toLowerCase().trim();
+    const valid = otpStore.verifyAndClear(normalizedEmail, otp);
+    if (!valid) {
+      return res.status(401).json({ error: 'Invalid or expired OTP' });
+    }
+    let user = await User.findOne({ email: normalizedEmail });
+    if (!user) {
+      const nameFromEmail = normalizedEmail.split('@')[0] || 'User';
+      const name = nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1).toLowerCase();
+      const randomPassword = require('crypto').randomBytes(12).toString('hex');
+      user = await User.create({
+        name,
+        email: normalizedEmail,
+        password: randomPassword,
+      });
+    }
+    const token = generateToken(user._id);
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    console.error('Verify OTP error:', error);
+    res.status(500).json({ error: 'Server error during verification' });
   }
 });
 
