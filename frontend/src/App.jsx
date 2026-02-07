@@ -11,6 +11,7 @@ const AppContent = () => {
   const [currentChatId, setCurrentChatId] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const { getAuthHeaders, isAuthenticated, token } = useAuth()
 
   // Create a new chat when starting a new conversation
@@ -139,16 +140,34 @@ const AppContent = () => {
   }
 
   return (
-    <div className="flex h-screen bg-dark-bg">
-      <Sidebar 
-        onNewChat={handleNewChat} 
+    <div className="flex h-screen bg-dark-bg overflow-hidden">
+      {/* Mobile backdrop when sidebar is open */}
+      {sidebarOpen && (
+        <button
+          type="button"
+          aria-label="Close menu"
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 bg-black/60 z-30 md:hidden"
+        />
+      )}
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        onNewChat={() => {
+          handleNewChat()
+          setSidebarOpen(false)
+        }}
         onAuthModalOpen={() => setAuthModalOpen(true)}
-        onLoadChat={handleLoadChat}
+        onLoadChat={(chatId) => {
+          handleLoadChat(chatId)
+          setSidebarOpen(false)
+        }}
         onClearChat={handleClearChat}
         currentChatId={currentChatId}
       />
-      <ChatArea 
-        messages={messages} 
+      <ChatArea
+        onMenuClick={() => setSidebarOpen(true)}
+        messages={messages}
         onSendMessage={handleSendMessage}
         isLoading={isLoading}
         isAuthenticated={isAuthenticated}

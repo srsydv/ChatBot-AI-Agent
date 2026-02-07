@@ -60,17 +60,18 @@ const AuthModal = ({ isOpen, onClose }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-dark-sidebar border border-dark-border rounded-lg p-6 w-full max-w-md">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 sm:p-6 overflow-y-auto">
+      <div className="bg-dark-sidebar border border-dark-border rounded-lg p-5 sm:p-6 w-full max-w-md my-auto max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold text-white">
             {isLogin ? 'Login' : 'Register'}
           </h2>
           <button
+            type="button"
             onClick={onClose}
-            className="text-dark-text-secondary hover:text-white transition-colors"
+            className="p-2 -mr-2 text-dark-text-secondary hover:text-white hover:bg-dark-border rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -93,7 +94,8 @@ const AuthModal = ({ isOpen, onClose }) => {
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-white focus:outline-none focus:border-accent"
+                className="w-full px-4 py-3 sm:py-2 bg-dark-bg border border-dark-border rounded-lg text-white focus:outline-none focus:border-accent text-base"
+                style={{ minHeight: '44px' }}
                 placeholder="Enter your name"
                 required={!isLogin}
               />
@@ -109,7 +111,8 @@ const AuthModal = ({ isOpen, onClose }) => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-white focus:outline-none focus:border-accent"
+              className="w-full px-4 py-3 sm:py-2 bg-dark-bg border border-dark-border rounded-lg text-white focus:outline-none focus:border-accent text-base"
+              style={{ minHeight: '44px' }}
               placeholder="Enter your email"
               required
             />
@@ -124,7 +127,8 @@ const AuthModal = ({ isOpen, onClose }) => {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-white focus:outline-none focus:border-accent"
+              className="w-full px-4 py-3 sm:py-2 bg-dark-bg border border-dark-border rounded-lg text-white focus:outline-none focus:border-accent text-base"
+              style={{ minHeight: '44px' }}
               placeholder="Enter your password"
               required
               minLength={6}
@@ -134,7 +138,7 @@ const AuthModal = ({ isOpen, onClose }) => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full px-4 py-2 bg-accent hover:bg-accent-hover disabled:bg-dark-border disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-white font-medium transition-colors"
+            className="w-full px-4 py-3 sm:py-2 bg-accent hover:bg-accent-hover disabled:bg-dark-border disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-white font-medium transition-colors min-h-[44px]"
           >
             {loading ? 'Processing...' : isLogin ? 'Login' : 'Register'}
           </button>

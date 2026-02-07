@@ -7,7 +7,7 @@ const MessageList = ({ messages, isLoading }) => {
       {messages.map((message, index) => (
         <div
           key={index}
-          className={`flex gap-4 ${
+          className={`flex gap-2 sm:gap-4 ${
             message.role === 'user' ? 'justify-end' : 'justify-start'
           }`}
         >
@@ -17,7 +17,7 @@ const MessageList = ({ messages, isLoading }) => {
             </div>
           )}
           <div
-            className={`max-w-[80%] rounded-lg px-4 py-3 ${
+            className={`max-w-[90%] sm:max-w-[80%] rounded-lg px-3 py-2.5 sm:px-4 sm:py-3 ${
               message.role === 'user'
                 ? 'bg-dark-border text-white'
                 : 'bg-dark-sidebar text-dark-text'

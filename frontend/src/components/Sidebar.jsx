@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { chatService } from '../services/chatService'
 
-const Sidebar = ({ onNewChat, onAuthModalOpen, onLoadChat, onClearChat, currentChatId }) => {
+const Sidebar = ({ isOpen = false, onClose, onNewChat, onAuthModalOpen, onLoadChat, onClearChat, currentChatId }) => {
   const [activeItem, setActiveItem] = useState('new-chat')
   const [chats, setChats] = useState([])
   const [loadingChats, setLoadingChats] = useState(false)
@@ -101,10 +101,27 @@ const Sidebar = ({ onNewChat, onAuthModalOpen, onLoadChat, onClearChat, currentC
   ]
 
   return (
-    <div className="w-64 bg-dark-sidebar border-r border-dark-border flex flex-col h-full">
+    <aside
+      className={`
+        fixed md:relative inset-y-0 left-0 z-40 w-[280px] md:w-64
+        bg-dark-sidebar border-r border-dark-border flex flex-col h-full
+        transform transition-transform duration-200 ease-out
+        ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}
+    >
       {/* Logo/Header */}
-      <div className="p-6 border-b border-dark-border">
-        <h1 className="text-2xl font-bold text-white">Allo</h1>
+      <div className="p-4 md:p-6 border-b border-dark-border flex items-center justify-between">
+        <h1 className="text-xl md:text-2xl font-bold text-white">Allo</h1>
+        <button
+          type="button"
+          aria-label="Close menu"
+          onClick={() => onClose?.()}
+          className="p-2 -mr-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-dark-text-secondary hover:text-white hover:bg-dark-border rounded md:hidden"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
 
       {/* Menu Items */}
@@ -117,12 +134,12 @@ const Sidebar = ({ onNewChat, onAuthModalOpen, onLoadChat, onClearChat, currentC
                 setActiveItem(item.id)
                 if (item.id === 'new-chat') {
                   setActiveItem('new-chat')
-                  onNewChat()
+                  onNewChat?.()
                 }
               }
             }}
             disabled={item.disabled}
-            className={`w-full px-6 py-3 text-left flex items-center gap-3 transition-colors ${
+            className={`w-full px-4 md:px-6 py-3 min-h-[44px] text-left flex items-center gap-3 transition-colors ${
               activeItem === item.id
                 ? 'bg-dark-border text-white'
                 : 'text-dark-text-secondary hover:bg-dark-border hover:text-white'
@@ -136,7 +153,7 @@ const Sidebar = ({ onNewChat, onAuthModalOpen, onLoadChat, onClearChat, currentC
 
       {/* History Section */}
       {isAuthenticated && (
-        <div className="border-t border-dark-border p-4 flex-1 overflow-y-auto">
+        <div className="border-t border-dark-border p-3 md:p-4 flex-1 overflow-y-auto min-h-0">
           <h3 className="text-sm font-semibold text-dark-text-secondary mb-2 px-2">
             History
           </h3>
@@ -150,7 +167,7 @@ const Sidebar = ({ onNewChat, onAuthModalOpen, onLoadChat, onClearChat, currentC
                 <div
                   key={chat.id}
                   onClick={() => handleChatClick(chat.id)}
-                  className={`group px-2 py-2 text-sm rounded cursor-pointer flex items-center justify-between ${
+                  className={`group px-2 py-3 md:py-2 text-sm rounded cursor-pointer flex items-center justify-between min-h-[44px] ${
                     currentChatId === chat.id
                       ? 'bg-dark-border text-white'
                       : 'text-dark-text-secondary hover:bg-dark-border hover:text-white'
@@ -189,7 +206,7 @@ const Sidebar = ({ onNewChat, onAuthModalOpen, onLoadChat, onClearChat, currentC
       )}
 
       {/* Footer */}
-      <div className="border-t border-dark-border p-4">
+      <div className="border-t border-dark-border p-3 md:p-4 shrink-0">
         {isAuthenticated && user ? (
           <div className="flex items-center justify-between text-sm mb-3">
             <div className="flex items-center gap-2 text-dark-text-secondary">
@@ -202,22 +219,26 @@ const Sidebar = ({ onNewChat, onAuthModalOpen, onLoadChat, onClearChat, currentC
         ) : null}
         {isAuthenticated ? (
           <button
+            type="button"
             onClick={handleLogout}
-            className="w-full px-3 py-2 bg-dark-border hover:bg-opacity-80 rounded text-sm text-dark-text-secondary hover:text-white transition-colors"
+            className="w-full px-3 py-3 md:py-2 min-h-[44px] bg-dark-border hover:bg-opacity-80 rounded text-sm text-dark-text-secondary hover:text-white transition-colors"
           >
             Logout
           </button>
         ) : (
           <button
+            type="button"
             onClick={onAuthModalOpen}
-            className="w-full px-3 py-2 bg-accent hover:bg-accent-hover rounded text-sm text-white font-medium transition-colors"
+            className="w-full px-3 py-3 md:py-2 min-h-[44px] bg-accent hover:bg-accent-hover rounded text-sm text-white font-medium transition-colors"
           >
             Login
           </button>
         )}
       </div>
-    </div>
+    </aside>
   )
 }
+
+
 
 export default Sidebar
