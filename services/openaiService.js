@@ -8,23 +8,24 @@ const openai = new OpenAI({
 const generateChatCompletion = async (messages, options = {}) => {
   try {
     const {
-      model = 'gpt-4.1-nano',
-      temperature = 0.7,
-      max_tokens = 3000,
-      ...otherOptions
+      model = 'gpt-4o-mini-search-preview',
+      temperature,
+      max_tokens,
+      ...rest
     } = options;
 
+    // Web-search models don't accept temperature/max_tokens; omit them
     const completion = await openai.chat.completions.create({
       model,
       messages,
-      temperature,
-      max_tokens,
-      ...otherOptions,
+      web_search_options: {},
+      ...rest,
     });
 
+    const msg = completion.choices[0].message;
     return {
       role: 'assistant',
-      content: completion.choices[0].message.content,
+      content: msg.content || '',
       usage: completion.usage,
     };
   } catch (error) {
