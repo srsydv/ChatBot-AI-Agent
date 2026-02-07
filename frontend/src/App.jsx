@@ -14,18 +14,17 @@ const AppContent = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { getAuthHeaders, isAuthenticated, token } = useAuth()
 
-  // Create a new chat when starting a new conversation
+  // Create a new chat when starting a new conversation (logged in) or just clear (guest)
   const handleNewChat = async () => {
     if (!isAuthenticated) {
-      setAuthModalOpen(true)
+      setCurrentChatId(null)
+      setMessages([])
       return
     }
-
     try {
       const result = await chatService.createChat('New Chat', token)
       setCurrentChatId(result.chat.id)
       setMessages([])
-      // Refresh chat history in sidebar
       if (window.refreshChatHistory) {
         window.refreshChatHistory()
       }
@@ -60,14 +59,8 @@ const AppContent = () => {
   }
 
   const handleSendMessage = async (message) => {
-    if (!isAuthenticated) {
-      setAuthModalOpen(true)
-      return
-    }
-
-    // Create a new chat if one doesn't exist
     let chatId = currentChatId
-    if (!chatId) {
+    if (isAuthenticated && !chatId) {
       try {
         const result = await chatService.createChat('New Chat', token)
         chatId = result.chat.id
@@ -84,13 +77,16 @@ const AppContent = () => {
     setIsLoading(true)
 
     try {
+      const headers = { 'Content-Type': 'application/json' }
+      if (token) headers['Authorization'] = `Bearer ${token}`
+
       const response = await fetch(getApiUrl('/api/chat'), {
         method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ 
+        headers,
+        body: JSON.stringify({
           message,
-          chatId: chatId,
-          conversationHistory: messages, // Send conversation history for context
+          ...(chatId && { chatId }),
+          conversationHistory: messages,
         }),
       })
 
@@ -104,36 +100,32 @@ const AppContent = () => {
       }
 
       const data = await response.json()
-      const aiMessage = { 
-        role: data.role || 'assistant', 
-        content: data.content 
+      const aiMessage = {
+        role: data.role || 'assistant',
+        content: data.content,
       }
-      setMessages(prev => {
+      setMessages((prev) => {
         const updated = [...prev, aiMessage]
-        
-        // Update chat title with first user message if it's still "New Chat"
-        if (updated.length === 2 && chatId) {
-          const firstUserMessage = updated.find(m => m.role === 'user')
+        if (isAuthenticated && updated.length === 2 && chatId) {
+          const firstUserMessage = updated.find((m) => m.role === 'user')
           if (firstUserMessage) {
             const title = firstUserMessage.content.slice(0, 50)
             chatService.updateChatTitle(chatId, title, token).catch(console.error)
           }
         }
-        
         return updated
       })
-      
-      // Refresh chat history after sending message
+
       if (window.refreshChatHistory) {
         window.refreshChatHistory()
       }
     } catch (error) {
       console.error('Error sending message:', error)
-      const errorMessage = { 
-        role: 'assistant', 
-        content: error.message || 'Sorry, there was an error processing your message. Please try again.' 
+      const errorMessage = {
+        role: 'assistant',
+        content: error.message || 'Sorry, there was an error processing your message. Please try again.',
       }
-      setMessages(prev => [...prev, errorMessage])
+      setMessages((prev) => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
     }

@@ -18,10 +18,8 @@ const ChatArea = ({ onMenuClick, messages, onSendMessage, isLoading, isAuthentic
   }, [messages])
 
   const handleSuggestionClick = (suggestion) => {
-    if (isAuthenticated) {
-      onSendMessage(suggestion)
-      setShowSuggestions(false)
-    }
+    onSendMessage(suggestion)
+    setShowSuggestions(false)
   }
 
   return (
@@ -44,14 +42,15 @@ const ChatArea = ({ onMenuClick, messages, onSendMessage, isLoading, isAuthentic
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-8 min-h-0">
-        {!isAuthenticated && messages.length === 0 ? (
-          <div className="max-w-3xl mx-auto text-center py-12">
-            <p className="text-dark-text-secondary text-lg mb-4">
-              Please login to start chatting with Merlin
-            </p>
-          </div>
-        ) : messages.length === 0 && showSuggestions ? (
-          <QuickSuggestions onSuggestionClick={handleSuggestionClick} />
+        {messages.length === 0 && showSuggestions ? (
+          <>
+            {!isAuthenticated && (
+              <p className="text-center text-dark-text-secondary text-sm mb-4">
+                Login to save your chats
+              </p>
+            )}
+            <QuickSuggestions onSuggestionClick={handleSuggestionClick} />
+          </>
         ) : (
           <MessageList messages={messages} isLoading={isLoading} />
         )}
